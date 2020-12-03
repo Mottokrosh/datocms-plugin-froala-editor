@@ -37,6 +37,13 @@ module.exports = {
           'sass-loader',
         ],
       },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader',
+        ],
+      },
     ],
   },
   plugins: [
@@ -50,8 +57,6 @@ module.exports = {
       tags: [
         'https://unpkg.com/datocms-plugins-sdk@0.0.9/dist/sdk.js',
         'https://unpkg.com/datocms-plugins-sdk@0.0.9/dist/sdk.css',
-        'node_modules/froala-editor/css/froala_editor.pkgd.min.css',
-        // 'node_modules/froala-editor/js/froala_editor.pkgd.min.js',
       ],
     }),
   ].filter(Boolean),
