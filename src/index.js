@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-disable import/extensions */
 /* eslint-disable indent */
 /* eslint-disable max-len */
@@ -29,7 +30,16 @@ DatoCmsPlugin.init((plugin) => {
 
   const initialContent = plugin.getFieldValue(plugin.fieldPath);
 
-  FroalaEditor.RegisterCommand('datoImage', {
+  const uploadToImageElement = (upload) => {
+    if (upload.attributes.is_image) {
+      const img = upload.attributes;
+      const url = img.url.replace('https://www.datocms-assets.com/22581', 'https://www.oberlo.com/media');
+      const { alt, title } = img.default_field_metadata[plugin.locale];
+      return `<img src="${url}" alt="${alt}" title="${title}" class="editor-inserted">`;
+    }
+  };
+
+  FroalaEditor.RegisterCommand('insertDatoImage', {
     title: 'Insert Dato Image',
     icon: 'insertImage',
     focus: true,
@@ -40,17 +50,31 @@ DatoCmsPlugin.init((plugin) => {
         .then((upload) => {
           if (upload) {
             console.log('Upload selected: ', upload);
-            if (upload.attributes.is_image) {
-              const img = upload.attributes;
-              const url = img.url.replace('https://www.datocms-assets.com/22581', 'https://www.oberlo.com/media');
-              const { alt, title } = img.default_field_metadata[plugin.locale];
-              this.html.insert(`<img src="${url}" alt="${alt}" title="${title}" class="editor-inserted">`);
-            }
+            this.html.insert(uploadToImageElement(upload));
           } else {
             console.log('Modal closed!');
           }
         });
-      // this.html.insert('img');
+    },
+  });
+
+  FroalaEditor.RegisterCommand('replaceDatoImage', {
+    title: 'Replace Dato Image',
+    icon: 'imageReplace',
+    focus: true,
+    undo: true,
+    refreshAfterCallback: true,
+    callback: function () {
+      plugin.selectUpload()
+        .then((upload) => {
+          if (upload) {
+            console.log('Upload selected: ', upload);
+            this.image.remove(this.image.get());
+            this.html.insert(uploadToImageElement(upload));
+          } else {
+            console.log('Modal closed!');
+          }
+        });
     },
   });
 
@@ -64,7 +88,7 @@ DatoCmsPlugin.init((plugin) => {
         buttons: ['alignLeft', 'alignCenter', 'formatOLSimple', 'alignRight', 'alignJustify', 'formatOL', 'formatUL', 'paragraphFormat', 'paragraphStyle', 'lineHeight', 'outdent', 'indent', 'quote'],
       },
       moreRich: {
-        buttons: ['insertLink', 'datoImage', 'insertVideo', 'insertTable', 'emoticons', 'fontAwesome', 'specialCharacters', 'embedly', 'insertFile', 'insertHR'],
+        buttons: ['insertLink', 'insertDatoImage', 'insertVideo', 'insertTable', 'emoticons', 'fontAwesome', 'specialCharacters', 'embedly', 'insertFile', 'insertHR'],
       },
       moreMisc: {
         buttons: ['undo', 'redo', 'fullscreen', 'print', 'getPDF', 'spellChecker', 'selectAll', 'html', 'help'],
@@ -72,6 +96,7 @@ DatoCmsPlugin.init((plugin) => {
         buttonsVisible: 2,
       },
     },
+    imageEditButtons: ['replaceDatoImage', 'imageAlign', 'imageCaption', 'imageRemove', '|', 'imageLink', 'linkOpen', 'linkEdit', 'linkRemove', '-', 'imageDisplay', 'imageStyle', 'imageAlt'],
     events: {
       initialized: function () {
         this.html.set(initialContent);
