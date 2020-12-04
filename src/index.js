@@ -17,16 +17,42 @@ import 'froala-editor/css/froala_editor.pkgd.min.css';
 import 'froala-editor/css/third_party/embedly.min.css';
 // import "froala-editor/css/plugins/fullscreen.min.css";
 
+import DatoCmsPlugin from 'datocms-plugins-sdk';
 import FroalaEditor from 'froala-editor';
 
-// window.DatoCmsPlugin.init((plugin) => {
-//   plugin.startAutoResizer();
+DatoCmsPlugin.init((plugin) => {
+  plugin.startAutoResizer();
 
   const editorWrapper = document.createElement('div');
   editorWrapper.setAttribute('id', 'editor');
   document.body.append(editorWrapper);
 
-  // const initialContent = plugin.getFieldValue(plugin.fieldPath);
+  const initialContent = plugin.getFieldValue(plugin.fieldPath);
+
+  FroalaEditor.RegisterCommand('datoImage', {
+    title: 'Insert Dato Image',
+    icon: 'insertImage',
+    focus: true,
+    undo: true,
+    refreshAfterCallback: true,
+    callback: function () {
+      plugin.selectUpload()
+        .then((upload) => {
+          if (upload) {
+            console.log('Upload selected: ', upload);
+            if (upload.attributes.is_image) {
+              const img = upload.attributes;
+              const url = img.url.replace('https://www.datocms-assets.com/22581', 'https://www.oberlo.com/media');
+              const { alt, title } = img.default_field_metadata[plugin.locale];
+              this.html.insert(`<img src="${url}" alt="${alt}" title="${title}" class="editor-inserted">`);
+            }
+          } else {
+            console.log('Modal closed!');
+          }
+        });
+      // this.html.insert('img');
+    },
+  });
 
   // eslint-disable-next-line no-unused-vars
   const editor = new FroalaEditor('#editor', {
@@ -38,7 +64,7 @@ import FroalaEditor from 'froala-editor';
         buttons: ['alignLeft', 'alignCenter', 'formatOLSimple', 'alignRight', 'alignJustify', 'formatOL', 'formatUL', 'paragraphFormat', 'paragraphStyle', 'lineHeight', 'outdent', 'indent', 'quote'],
       },
       moreRich: {
-        buttons: ['insertLink', 'insertImage', 'insertVideo', 'insertTable', 'emoticons', 'fontAwesome', 'specialCharacters', 'embedly', 'insertFile', 'insertHR'],
+        buttons: ['insertLink', 'datoImage', 'insertVideo', 'insertTable', 'emoticons', 'fontAwesome', 'specialCharacters', 'embedly', 'insertFile', 'insertHR'],
       },
       moreMisc: {
         buttons: ['undo', 'redo', 'fullscreen', 'print', 'getPDF', 'spellChecker', 'selectAll', 'html', 'help'],
@@ -48,10 +74,10 @@ import FroalaEditor from 'froala-editor';
     },
     events: {
       initialized: function () {
-        // this.html.set(initialContent);
+        this.html.set(initialContent);
       },
       contentChanged: function () {
-        // plugin.setFieldValue(plugin.fieldPath, this.html.get());
+        plugin.setFieldValue(plugin.fieldPath, this.html.get());
       },
     },
   });
@@ -69,4 +95,4 @@ import FroalaEditor from 'froala-editor';
   // input.addEventListener('change', (e) => {
   //   plugin.setFieldValue(plugin.fieldPath, e.target.value);
   // });
-// });
+});
